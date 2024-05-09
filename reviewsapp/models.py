@@ -21,9 +21,14 @@ class Book(models.Model):
     isbn = models.CharField(max_length=20, verbose_name="ISBN number of the book.")
     publisher = models.ForeignKey(Publisher, on_delete=models.CASCADE)
     contributors = models.ManyToManyField("Contributor", through="BookContributor")
+    cover = models.ImageField(upload_to='book_covers/', blank=True, null=True)
+    sample = models.FileField(upload_to='boot_samples/', blank=True, null=True)
 
     def __str__(self):
-        return self.title
+        return "{} ({})".format(self.title, self.isbn)
+
+    def isbn13(self):
+        return "{}-{}-{}-{}-{}".format(self.isbn[0:3], self.isbn[3:4], self.isbn[4:6], self.isbn[6:12], self.isbn[12:13])
 
 
 class Contributor(models.Model):
@@ -34,7 +39,11 @@ class Contributor(models.Model):
     email = models.EmailField(help_text="The contact  email for th constributor")
 
     def __str__(self):
-        return self.first_name
+        return self.initialled_name()
+
+    def initialled_name(self):
+        initials = ''.join(name[0] for name in self.first_names.split(' '))
+        return "{}, {}".format(self.last_names, initials)
 
 
 class BookContributor(models.Model):
@@ -57,3 +66,6 @@ class Review(models.Model):
     date_edited = models.DateTimeField(null=True, help_text="The date and time the review was last edited.")
     creator = models.ForeignKey(auth.get_user_model(), on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, help_text="The Book that this review is for.")
+
+    def __str__(self):
+        return "{} - {}".format(self.creator.username, self.book.title)

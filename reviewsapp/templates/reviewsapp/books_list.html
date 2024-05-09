@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'reviewsapp/base.html' %}
 
 {% block content %}
     <ul class="list-group">
@@ -21,7 +21,7 @@
                 {% endif %}
 
                 <a class="btn btn-primary btn-sm active" role="button" aria-pressed="true"
-                   href="/book/{{ item.book.id }}/">Reviews</a></li></li>
+                   href="/books/{{ item.book.id }}/">Reviews</a></li>
         {% endfor %}
     </ul>
 {% endblock %}
