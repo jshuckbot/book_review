@@ -21,7 +21,6 @@ def index(request):
 def book_list(request):
     books = Book.objects.all()
     book_list = []
-
     for book in books:
         reviews = book.review_set.all()
         book_rating = None
@@ -56,12 +55,24 @@ def book_detail(request, pk):
             "reviews": None
         }
 
+    if request.user.is_authenticated:
+        max_viewed_books_length = 10
+        viewed_books = request.session.get('viewed_books', [])
+        viewed_book = [book.id, book.title]
+        if viewed_book in viewed_books:
+            viewed_books.pop(viewed_books.index(viewed_book))
+        viewed_books.insert(0, viewed_book)
+        viewed_books = viewed_books[:max_viewed_books_length]
+        request.session['viewed_books'] = viewed_books
+
     return render(request, 'reviewsapp/book_detail.html', context)
 
 
 def book_search(request):
     search_text = request.GET.get("search", "")
     form = SearchForm(request.GET)
+    print(request.GET)
+    print(search_text)
     books = set()
 
     if form.is_valid() and form.cleaned_data["search"]:
@@ -82,6 +93,16 @@ def book_search(request):
             for contributor in lname_contributors:
                 for book in contributor.book_set.all():
                     books.add(book)
+
+        if request.user.is_authenticated:
+            search_history = request.session.get('search_history', [])
+            search_options = [search_in, search]
+            if search_options in search_history:
+                search_history.pop(search_history.index(search_options))
+            search_history.insert(0, search_options)
+
+            request.session['search_history'] = search_history
+
     return render(request, "reviewsapp/search-results.html",
                   {"form": form, "books": books, "search_text": search_text})
 
@@ -101,6 +122,16 @@ class BookDetail(DetailView):
         else:
             context['reviews'] = None
             context['book_rating'] = None
+
+        if self.request.user.is_authenticated:
+            max_viewed_books_length = 10
+            viewed_books = self.request.session.get('viewed_books', [])
+            viewed_book = [self.object.pk, self.object.title]
+            if viewed_book in viewed_books:
+                viewed_books.pop(viewed_books.index(viewed_book))
+            viewed_books.insert(0, viewed_book)
+            viewed_books = viewed_books[:max_viewed_books_length]
+            self.request.session['viewed_books'] = viewed_books
 
         return context
 
