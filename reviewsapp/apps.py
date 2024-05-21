@@ -7,5 +7,5 @@ class ReviewsappConfig(AppConfig):
     name = "reviewsapp"
 
 
-class ReviewsappAdminConfig(AdminConfig):
-    default_site = 'admin.BookAdminSite'
+# class ReviewsappAdminConfig(AdminConfig):
+#     default_site = 'admin.BookAdminSite'

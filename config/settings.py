@@ -15,7 +15,8 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     # "django.contrib.admin",
-    "reviewsapp.apps.ReviewsappAdminConfig",
+    # "reviewsapp.apps.ReviewsappAdminConfig",
+    "bookr_admin.apps.BookrAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
