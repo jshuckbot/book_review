@@ -1,5 +1,6 @@
 from django.contrib import admin
-from reviewsapp.models import Publisher, Contributor, Book, BookContributor, Review
+
+from reviewsapp.models import Book, BookContributor, Contributor, Publisher, Review
 
 
 # def initialled_name(obj):
@@ -9,17 +10,20 @@ from reviewsapp.models import Publisher, Contributor, Book, BookContributor, Rev
 #
 #
 class ContributorAdmin(admin.ModelAdmin):
-    list_display = ('last_names', 'first_names')
-    ordering = ('-last_names', 'first_names')
-    search_fields = ('last_names__start_with', 'first_names')
-    list_filter = ('last_names',)
+    list_display = ("last_names", "first_names")
+    ordering = ("-last_names", "first_names")
+    search_fields = ("last_names__start_with", "first_names")
+    list_filter = ("last_names",)
 
 
 class BookAdmin(admin.ModelAdmin):
-    date_hierarchy = 'publication_date'
-    list_display = ('title', 'get_publisher', 'isbn13')
-    list_filter = ('publisher', 'publication_date', )
-    search_fields = ('title', 'isbn__exact', 'publisher__name')
+    date_hierarchy = "publication_date"
+    list_display = ("title", "get_publisher", "isbn13")
+    list_filter = (
+        "publisher",
+        "publication_date",
+    )
+    search_fields = ("title", "isbn__exact", "publisher__name")
 
     def get_publisher(self, obj):
         return obj.publisher.name
@@ -29,8 +33,8 @@ class BookAdmin(admin.ModelAdmin):
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    exclude = ('date_edited',)
-    fieldsets = ((None, {'fields': ('creator', 'book')}), ('Review content', {'fields': ('content', 'rating')}))
+    exclude = ("date_edited",)
+    fieldsets = ((None, {"fields": ("creator", "book")}), ("Review content", {"fields": ("content", "rating")}))
 
 
 admin.site.register(Publisher)

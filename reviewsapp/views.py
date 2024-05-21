@@ -1,17 +1,17 @@
 from io import BytesIO
 
-from PIL import Image
-from django.contrib.auth.decorators import permission_required, user_passes_test, login_required
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.core.files.images import ImageFile
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.generic import DetailView
+from PIL import Image
 
-from .forms import SearchForm, PublisherForm, ReviewForm, BookMediaForm
-from .models import Book, Review, Contributor, Publisher
+from .forms import BookMediaForm, PublisherForm, ReviewForm, SearchForm
+from .models import Book, Contributor, Publisher, Review
 from .utils import average_rating
-from django.contrib import messages
 
 
 def index(request):
@@ -43,29 +43,21 @@ def book_detail(request, pk):
 
     if reviews:
         book_rating = average_rating([review.rating for review in reviews])
-        context = {
-            "book": book,
-            "book_rating": book_rating,
-            "reviews": reviews
-        }
+        context = {"book": book, "book_rating": book_rating, "reviews": reviews}
     else:
-        context = {
-            "book": book,
-            "book_rating": None,
-            "reviews": None
-        }
+        context = {"book": book, "book_rating": None, "reviews": None}
 
     if request.user.is_authenticated:
         max_viewed_books_length = 10
-        viewed_books = request.session.get('viewed_books', [])
+        viewed_books = request.session.get("viewed_books", [])
         viewed_book = [book.id, book.title]
         if viewed_book in viewed_books:
             viewed_books.pop(viewed_books.index(viewed_book))
         viewed_books.insert(0, viewed_book)
         viewed_books = viewed_books[:max_viewed_books_length]
-        request.session['viewed_books'] = viewed_books
+        request.session["viewed_books"] = viewed_books
 
-    return render(request, 'reviewsapp/book_detail.html', context)
+    return render(request, "reviewsapp/book_detail.html", context)
 
 
 def book_search(request):
@@ -95,20 +87,19 @@ def book_search(request):
                     books.add(book)
 
         if request.user.is_authenticated:
-            search_history = request.session.get('search_history', [])
+            search_history = request.session.get("search_history", [])
             search_options = [search_in, search]
             if search_options in search_history:
                 search_history.pop(search_history.index(search_options))
             search_history.insert(0, search_options)
 
-            request.session['search_history'] = search_history
+            request.session["search_history"] = search_history
 
-    return render(request, "reviewsapp/search-results.html",
-                  {"form": form, "books": books, "search_text": search_text})
+    return render(request, "reviewsapp/search-results.html", {"form": form, "books": books, "search_text": search_text})
 
 
 class BookDetail(DetailView):
-    template_name = 'reviewsapp/book_detail.html'
+    template_name = "reviewsapp/book_detail.html"
     model = Book
 
     def get_context_data(self, **kwargs):
@@ -116,22 +107,22 @@ class BookDetail(DetailView):
         reviews = self.get_object().review_set.all()
         if reviews:
             book_rating = average_rating([review.rating for review in reviews])
-            context['reviews'] = reviews
-            context['book_rating'] = book_rating
+            context["reviews"] = reviews
+            context["book_rating"] = book_rating
 
         else:
-            context['reviews'] = None
-            context['book_rating'] = None
+            context["reviews"] = None
+            context["book_rating"] = None
 
         if self.request.user.is_authenticated:
             max_viewed_books_length = 10
-            viewed_books = self.request.session.get('viewed_books', [])
+            viewed_books = self.request.session.get("viewed_books", [])
             viewed_book = [self.object.pk, self.object.title]
             if viewed_book in viewed_books:
                 viewed_books.pop(viewed_books.index(viewed_book))
             viewed_books.insert(0, viewed_book)
             viewed_books = viewed_books[:max_viewed_books_length]
-            self.request.session['viewed_books'] = viewed_books
+            self.request.session["viewed_books"] = viewed_books
 
         return context
 
@@ -152,16 +143,17 @@ def publisher_edit(request, pk=None):
         if form.is_valid():
             updated_publisher = form.save()
             if publisher is None:
-                messages.success(request, f"Publisher \"{updated_publisher}\" was created")
+                messages.success(request, f'Publisher "{updated_publisher}" was created')
             else:
-                messages.success(request, f"Publisher \"{updated_publisher}\" was updated")
+                messages.success(request, f'Publisher "{updated_publisher}" was updated')
 
             return redirect("publisher_edit", updated_publisher.pk)
     else:
         form = PublisherForm(instance=publisher)
 
-    return render(request, "reviewsapp/instance-form.html",
-                  {"form": form, "instance": publisher, 'model_type': 'Publisher'})
+    return render(
+        request, "reviewsapp/instance-form.html", {"form": form, "instance": publisher, "model_type": "Publisher"}
+    )
 
 
 @login_required
@@ -183,9 +175,9 @@ def review_edit(request, book_pk, review_pk=None):
             update_review.book = book
 
             if review is None:
-                messages.success(request, f"Review for \"{book}\" was created")
+                messages.success(request, f'Review for "{book}" was created')
             else:
-                messages.success(request, f"Review for \"{book}\" was updated")
+                messages.success(request, f'Review for "{book}" was updated')
                 update_review.date_edited = now()
 
             update_review.save()
@@ -194,25 +186,28 @@ def review_edit(request, book_pk, review_pk=None):
     else:
         form = ReviewForm(instance=review)
 
-    return render(request, "reviewsapp/instance-form.html",
-                  {
-                      "form": form,
-                      "instance": review,
-                      'model_type': 'Review',
-                      "related_instance": book,
-                      "related_model_type": "Book"
-                  })
+    return render(
+        request,
+        "reviewsapp/instance-form.html",
+        {
+            "form": form,
+            "instance": review,
+            "model_type": "Review",
+            "related_instance": book,
+            "related_model_type": "Book",
+        },
+    )
 
 
 @login_required
 def book_media(request, pk):
     book = get_object_or_404(Book, pk=pk)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = BookMediaForm(request.POST, request.FILES, instance=book)
         if form.is_valid():
             book = form.save(commit=False)
-            cover = form.cleaned_data.get('cover')
+            cover = form.cleaned_data.get("cover")
 
             if cover:
                 image = Image.open(cover)
@@ -222,11 +217,14 @@ def book_media(request, pk):
                 image_file = ImageFile(image_data)
                 book.cover.save(cover.name, image_file)
             book.save()
-            messages.success(request, "Book \"{}\" was successfully updated.".format(book))
+            messages.success(request, 'Book "{}" was successfully updated.'.format(book))
 
             return redirect("book_detail", book.pk)
     else:
         form = BookMediaForm(instance=book)
 
-    return render(request, 'reviewsapp/instance-form.html',
-                  {"instance": book, "form": form, "model_type": "Book", "is_file_upload": True})
+    return render(
+        request,
+        "reviewsapp/instance-form.html",
+        {"instance": book, "form": form, "model_type": "Book", "is_file_upload": True},
+    )

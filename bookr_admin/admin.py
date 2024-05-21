@@ -17,11 +17,12 @@ class BookrAdmin(admin.AdminSite):
 
     def get_urls(self):
         urls = super().get_urls()
-        url_patterns = [path("admin_profile/", self.admin_view(self.profile_view), name='admin_profile'), ]
+        url_patterns = [
+            path("admin_profile/", self.admin_view(self.profile_view), name="admin_profile"),
+        ]
         return url_patterns + urls
-    
+
     def each_context(self, request):
         context = super().each_context(request)
-        context['username'] = request.user.username
+        context["username"] = request.user.username
         return context
-    
