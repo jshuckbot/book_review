@@ -8,6 +8,7 @@ from config.views import profile
 # from reviewsapp.admin import admin_site
 
 urlpatterns = [
+    path('book_management/', include('book_management.urls')),
     path("admin/", admin.site.urls),
     path("accounts/", include(("django.contrib.auth.urls", "auth"), namespace="accounts")),
     path("accounts/profile/", profile, name="profile"),

@@ -47,6 +47,9 @@ class Contributor(models.Model):
         initials = "".join(name[0] for name in self.first_names.split(" "))
         return "{}, {}".format(self.last_names, initials)
 
+    def number_contributions(self):
+        return self.bookcontributor_set.count()
+
 
 class BookContributor(models.Model):
     class CotributionRole(models.TextChoices):
